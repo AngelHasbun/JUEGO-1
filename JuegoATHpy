@@ -1,5 +1,3 @@
-# JuegoLedvin.py
-
 import pygame
 import pygame.freetype
 import random
