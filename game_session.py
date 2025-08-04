@@ -109,11 +109,15 @@ class GameSession:
 
             icon_surface = None
             if spawn_type == 'left' or spawn_type == 'right':
-                letra['icon_type'] = 'icono_lateral'
-                icon_surface = self.main.spawner_icons['icono_lateral']
+                if spawn_type == 'left':
+                    letra['icon_type'] = 'barco_left'
+                    icon_surface = self.main.spawner_icons['barco_left']
+                else:
+                    letra['icon_type'] = 'barco'
+                    icon_surface = self.main.spawner_icons['barco']
             else:
-                letra['icon_type'] = 'avion'
-                icon_surface = self.main.spawner_icons['avion']
+                letra['icon_type'] = 'nave'
+                icon_surface = self.main.spawner_icons['nave']
 
             if spawn_type == 'left':
                 letra.update({
@@ -132,7 +136,7 @@ class GameSession:
                 })
 
             distancia_remolque = 20
-            if letra['icon_type'] == 'avion':
+            if letra['icon_type'] == 'nave':
                 letra['letter_x'] = letra['icon_x']
                 letra['letter_y'] = letra['icon_y'] + icon_surface.get_height() / 2 + distancia_remolque
             else:
@@ -291,7 +295,7 @@ class GameSession:
                     easing_factor = 0.1
                     
                     target_x, target_y = 0, 0
-                    if letra['icon_type'] == 'avion':
+                    if letra['icon_type'] == 'nave':
                         target_x = letra['icon_x']
                         target_y = letra['icon_y'] + icon_surface.get_height() / 2 + distancia_remolque
                     else:

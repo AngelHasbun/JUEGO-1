@@ -7,6 +7,7 @@ import json
 import os
 import sys
 from datetime import datetime
+from typing import Optional, Dict, Tuple, List, Any
 
 from powerups import PowerUp, ShieldPowerUp, DoubleScorePowerUp
 from score_manager import ScoreManager
@@ -15,38 +16,69 @@ from render_utils import render_text_gradient
 from game_session import GameSession
 
 # ========================
-# CONFIGURACIÓN INICIAL
+# CONFIGURACIÓN INICIAL OPTIMIZADA
 # ========================
-pygame.init()
-pygame.freetype.init()
-pygame.mixer.init()
+def initialize_pygame() -> Tuple[int, int, pygame.Surface]:
+    """Initialize pygame systems with error handling."""
+    try:
+        pygame.init()
+        pygame.freetype.init()
+        pygame.mixer.init(frequency=22050, size=-16, channels=2, buffer=512)
+        
+        info = pygame.display.Info()
+        width, height = info.current_w, info.current_h
+        screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption("SpeedType Animated")
+        
+        return width, height, screen
+    except Exception as e:
+        print(f"Error initializing pygame: {e}")
+        # Fallback to smaller resolution
+        screen = pygame.display.set_mode((1024, 768))
+        return 1024, 768, screen
+
+ANCHO, ALTO, pantalla = initialize_pygame()
 clock = pygame.time.Clock()
 
-info = pygame.display.Info()
-ANCHO, ALTO = info.current_w, info.current_h
-pantalla = pygame.display.set_mode((ANCHO, ALTO))
-pygame.display.set_caption("SpeedType Animated")
+# ========================
+# CONSTANTES OPTIMIZADAS
+# ========================
+# Colores base
+NEGRO = (0, 0, 0)
+BLANCO = (255, 255, 255)
+ROJO = (255, 0, 0)
+VERDE = (0, 255, 0)
+AZUL = (0, 0, 255)
+AMARILLO = (255, 255, 0)
+NARANJA = (255, 165, 0)
+PURPURA = (128, 0, 128)
+GRIS_OSCURO = (50, 50, 50)
+GRIS_CLARO = (100, 100, 100)
 
-# ========================
-# COLORES Y FUENTES
-# ========================
-NEGRO = (0, 0, 0); BLANCO = (255, 255, 255); ROJO = (255, 0, 0); VERDE = (0, 255, 0)
-GRIS_OSCURO = (50, 50, 50); GRIS_CLARO = (100, 100, 100); AMARILLO = (255, 255, 0)
-colores_disponibles = [(255, 255, 255), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 165, 0), (128, 0, 128)]
+# Configuraciones disponibles
+colores_disponibles = [BLANCO, ROJO, VERDE, AZUL, AMARILLO, NARANJA, PURPURA]
 fuentes_disponibles = ["arial", "comicsansms", "couriernew", "verdana"]
 
 # ========================
-# ESTILOS NEÓN
+# ESTILOS NEÓN OPTIMIZADOS
 # ========================
+class NeonStyles:
+    """Centralized neon style management."""
+    STYLES = {
+        "fucsia_cian": {"top": (255, 0, 255), "bottom": (0, 255, 255)},
+        "verde_azul": {"top": (57, 255, 20), "bottom": (0, 255, 255)},
+        "rosa_naranja": {"top": (255, 20, 147), "bottom": (255, 140, 0)},
+    }
+    
+    @classmethod
+    def get_colors(cls, style: str = "fucsia_cian") -> Dict[str, Tuple[int, int, int]]:
+        return cls.STYLES.get(style, cls.STYLES["fucsia_cian"])
+
 ESTILO_NEON = "fucsia_cian"
-estilos_neon = {
-    "fucsia_cian": {"top": (255, 0, 255), "bottom": (0, 255, 255)},
-    "verde_azul": {"top": (57, 255, 20), "bottom": (0, 255, 255)},
-    "rosa_naranja": {"top": (255, 20, 147), "bottom": (255, 140, 0)},
-}
-COLOR_GRADIENTE_TOP = estilos_neon[ESTILO_NEON]["top"]
-COLOR_GRADIENTE_BOTTOM = estilos_neon[ESTILO_NEON]["bottom"]
-COLOR_CONTORNO = (0, 0, 0)
+estilos_neon = NeonStyles.STYLES
+COLOR_GRADIENTE_TOP = NeonStyles.get_colors(ESTILO_NEON)["top"]
+COLOR_GRADIENTE_BOTTOM = NeonStyles.get_colors(ESTILO_NEON)["bottom"]
+COLOR_CONTORNO = NEGRO
 FUENTE_LOGO_STYLE = "Impact"
 
 # ========================
@@ -92,18 +124,35 @@ except Exception as e:
     for p_type in ["ralentizar", "escudo", "doble_puntuacion"]:
         powerup_icons[p_type] = pygame.Surface((icon_size, icon_size), pygame.SRCALPHA)
 
-# --- Cargar imágenes de los generadores de letras ---
+# --- Cargar imagen de la nave ---
 spawner_icons = {}
-spawner_icon_size = (80, 80) # Tamaño para el avión y el icono lateral
+spawner_icon_size = (80, 80) # Tamaño para la nave
 try:
-    spawner_icons["avion"] = pygame.image.load(os.path.join(os.path.dirname(__file__), "helicoptero.png")).convert_alpha()
-    spawner_icons["avion"] = pygame.transform.scale(spawner_icons["avion"], spawner_icon_size)
-    spawner_icons["icono_lateral"] = pygame.image.load(os.path.join(os.path.dirname(__file__), "vehiculo.png")).convert_alpha()
-    spawner_icons["icono_lateral"] = pygame.transform.scale(spawner_icons["icono_lateral"], spawner_icon_size)
+    # Cargar solo nave.png
+    nave_img = pygame.image.load(os.path.join(os.path.dirname(__file__), "nave.png")).convert_alpha()
+    nave_img = pygame.transform.scale(nave_img, spawner_icon_size)
+    
+    # Usar la nave para todos los tipos de spawner
+    spawner_icons["nave"] = nave_img
+    spawner_icons["avion"] = nave_img  # Para compatibilidad con código existente
+    spawner_icons["icono_lateral"] = nave_img  # Para compatibilidad con código existente
+    spawner_icons["nave_espacial"] = nave_img  # Para compatibilidad con código existente
+    spawner_icons["barco"] = nave_img  # Para compatibilidad con código existente
+    
+    print("Imagen de nave.png cargada exitosamente")
 except Exception as e:
-    print(f"Error cargando iconos de generadores: {e}")
-    spawner_icons["avion"] = pygame.Surface(spawner_icon_size, pygame.SRCALPHA)
-    spawner_icons["icono_lateral"] = pygame.Surface(spawner_icon_size, pygame.SRCALPHA)
+    print(f"Error cargando nave.png: {e}")
+    # Crear superficie de respaldo si la imagen no se puede cargar
+    fallback_surface = pygame.Surface(spawner_icon_size, pygame.SRCALPHA)
+    # Dibujar una forma básica de nave como respaldo
+    pygame.draw.polygon(fallback_surface, (100, 100, 255), [(40, 10), (60, 30), (40, 70), (20, 30)])
+    
+    # Usar la superficie de respaldo para todos los tipos
+    spawner_icons["nave"] = fallback_surface
+    spawner_icons["avion"] = fallback_surface
+    spawner_icons["icono_lateral"] = fallback_surface
+    spawner_icons["nave_espacial"] = fallback_surface
+    spawner_icons["barco"] = fallback_surface 
 
 # ========================
 # FUNCIONES DE UI Y UTILIDADES
@@ -270,14 +319,15 @@ def pantalla_menu_principal():
         pygame.mixer.music.play(-1)
     # ---------------------
 
-    btn_y_start, btn_spacing = ALTO // 2 - 50, 80
-    fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
+    btn_y_start, btn_spacing = ALTO // 2 - 80, 70
+    fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 28)
     btn_modos_juego = Button(ANCHO//2-140, btn_y_start, 280, 60, "JUGAR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
     btn_puntuaciones = Button(ANCHO//2-140, btn_y_start + btn_spacing, 280, 60, "PUNTUACIONES", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_cargar = Button(ANCHO//2-140, btn_y_start + 2 * btn_spacing, 280, 60, "CARGAR PARTIDA", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_config = Button(ANCHO//2-140, btn_y_start + 3 * btn_spacing, 280, 60, "CONFIGURACIÓN", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_salir = Button(ANCHO//2-140, btn_y_start + 4 * btn_spacing, 280, 60, "SALIR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    botones = [btn_modos_juego, btn_puntuaciones, btn_cargar, btn_config, btn_salir]
+    btn_instrucciones = Button(ANCHO//2-140, btn_y_start + 2 * btn_spacing, 280, 60, "INSTRUCCIONES", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_cargar = Button(ANCHO//2-140, btn_y_start + 3 * btn_spacing, 280, 60, "CARGAR PARTIDA", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_config = Button(ANCHO//2-140, btn_y_start + 4 * btn_spacing, 280, 60, "CONFIGURACIÓN", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_salir = Button(ANCHO//2-140, btn_y_start + 5 * btn_spacing, 280, 60, "SALIR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    botones = [btn_modos_juego, btn_puntuaciones, btn_instrucciones, btn_cargar, btn_config, btn_salir]
     for btn in botones: btn.set_logo_style(True)
     logo_img = None
     try: logo_img = pygame.image.load(os.path.join(os.path.dirname(__file__), "remove.png")).convert_alpha()
@@ -287,6 +337,7 @@ def pantalla_menu_principal():
             if evento.type == pygame.QUIT: pygame.quit(); sys.exit()
             if btn_modos_juego.handle_event(evento): return "seleccion_modo"
             if btn_puntuaciones.handle_event(evento): return "highscores"
+            if btn_instrucciones.handle_event(evento): return "instrucciones"
             if btn_cargar.handle_event(evento): return "cargar_partida"
             if btn_config.handle_event(evento): return "configuracion"
             if btn_salir.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
@@ -303,21 +354,20 @@ def pantalla_menu_principal():
 
 def pantalla_seleccion_modo_juego():
     fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
-    btn_arcane = Button(ANCHO//2-150, ALTO//2-150, 300, 70, "MODO ARCANE (1P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_arcane.set_logo_style(True)
-    btn_versus = Button(ANCHO//2-150, ALTO//2-50, 300, 70, "MODO VERSUS (2P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_versus.set_logo_style(True)
-    # Nuevo botón para el modo infinito
-    btn_infinito = Button(ANCHO//2-150, ALTO//2+50, 300, 70, "MODO INFINITO", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_infinito.set_logo_style(True) # [cite: 1]
+    btn_arcane = Button(ANCHO//2-150, ALTO//2-130, 300, 70, "MODO ARCANE (1P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_arcane.set_logo_style(True)
+    btn_versus = Button(ANCHO//2-150, ALTO//2-40, 300, 70, "MODO VERSUS (2P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_versus.set_logo_style(True)
+    btn_infinito = Button(ANCHO//2-150, ALTO//2+50, 300, 70, "MODO INFINITO", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_infinito.set_logo_style(True)
     btn_volver = Button(ANCHO//2-150, ALTO//2+150, 300, 70, "VOLVER", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_volver.set_logo_style(True)
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT: pygame.quit(); sys.exit()
             if btn_arcane.handle_event(evento): return "arcane"
             if btn_versus.handle_event(evento): return "versus"
-            if btn_infinito.handle_event(evento): return "infinito" # [cite: 1]
+            if btn_infinito.handle_event(evento): return "infinito"
             if btn_volver.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE): return "volver_menu"
         pantalla.blit(fondo_img, (0, 0)); dibujar_estrellas(0.5)
         render_text_gradient(pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60), "SELECCIONAR MODO", pygame.Rect(0, ALTO//4-50, ANCHO, 100), pantalla, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 4)
-        btn_arcane.draw(pantalla); btn_versus.draw(pantalla); btn_infinito.draw(pantalla); btn_volver.draw(pantalla) # [cite: 1]
+        btn_arcane.draw(pantalla); btn_versus.draw(pantalla); btn_infinito.draw(pantalla); btn_volver.draw(pantalla)
         pygame.display.flip(); clock.tick(60)
 
 def pantalla_configuracion_arcane():
@@ -507,6 +557,131 @@ def pantalla_highscores():
         btn_volver.draw(pantalla); btn_limpiar.draw(pantalla)
         pygame.display.flip(); clock.tick(60)
 
+def pantalla_instrucciones():
+    """Pantalla que muestra información de los power-ups con imágenes y descripciones."""
+    fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60)
+    fuente_subtitulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 36)
+    fuente_descripcion = pygame.freetype.SysFont("arial", 24)
+    fuente_pequena = pygame.freetype.SysFont("arial", 20)
+    
+    btn_volver = Button(ANCHO-180, 30, 150, 50, "VOLVER", 
+                       pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 24), GRIS_OSCURO, GRIS_CLARO)
+    btn_volver.set_logo_style(True, gradient_colors=[ROJO, (255,100,100)], border_color=NEGRO)
+    
+    # Información de los power-ups
+    powerups_info = [
+        {
+            "nombre": "RALENTIZAR",
+            "imagen": "caracol.png",
+            "descripcion": "Reduce la velocidad del juego temporalmente.",
+            "detalles": "Hace que las letras se muevan más lento, dándote más tiempo para reaccionar.",
+            "color": (100, 150, 255)
+        },
+        {
+            "nombre": "ESCUDO",
+            "imagen": "escudo.png",
+            "descripcion": "Te protege de un error sin penalizarte.",
+            "detalles": "Absorbe el próximo error que cometas, manteniéndote en el juego.",
+            "color": (100, 255, 100)
+        },
+        {
+            "nombre": "DOBLE PUNTUACIÓN",
+            "imagen": "dos.png",
+            "descripcion": "Duplica los puntos que obtienes temporalmente.",
+            "detalles": "Durante un tiempo limitado, cada acierto vale el doble de puntos.",
+            "color": (255, 255, 100)
+        }
+    ]
+    
+    # Cargar imágenes de power-ups con fallbacks
+    powerup_images = {}
+    for powerup in powerups_info:
+        try:
+            img = pygame.image.load(os.path.join(os.path.dirname(__file__), powerup["imagen"])).convert_alpha()
+            powerup_images[powerup["nombre"]] = pygame.transform.scale(img, (80, 80))
+        except Exception as e:
+            print(f"Error cargando {powerup['imagen']}: {e}")
+            # Crear imagen de fallback con color representativo
+            fallback = pygame.Surface((80, 80), pygame.SRCALPHA)
+            pygame.draw.circle(fallback, powerup["color"], (40, 40), 35)
+            pygame.draw.circle(fallback, BLANCO, (40, 40), 35, 3)
+            powerup_images[powerup["nombre"]] = fallback
+    
+    while True:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if btn_volver.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
+                return
+        
+        # Dibujar fondo
+        pantalla.blit(fondo_img, (0, 0))
+        dibujar_estrellas(0.3)
+        
+        # Título principal
+        rect_titulo = pygame.Rect(0, 50, ANCHO, 80)
+        render_text_gradient(fuente_titulo, "INSTRUCCIONES - POWER-UPS", rect_titulo, pantalla, 
+                           [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 3)
+        
+        # Descripción general
+        texto_intro = "Durante el juego aparecerán power-ups que te ayudarán. ¡Recógelos para activar sus efectos!"
+        texto_surface, texto_rect = fuente_pequena.render(texto_intro, BLANCO)
+        texto_rect.center = (ANCHO//2, 150)
+        pantalla.blit(texto_surface, texto_rect)
+        
+        # Mostrar cada power-up
+        start_y = 200
+        spacing_y = 140
+        
+        for i, powerup in enumerate(powerups_info):
+            y_pos = start_y + i * spacing_y
+            
+            # Dibujar imagen del power-up
+            img_x = ANCHO//2 - 300
+            img_rect = powerup_images[powerup["nombre"]].get_rect(center=(img_x, y_pos + 40))
+            
+            # Fondo para la imagen
+            pygame.draw.circle(pantalla, (40, 40, 40), (img_x, y_pos + 40), 50)
+            pygame.draw.circle(pantalla, powerup["color"], (img_x, y_pos + 40), 50, 3)
+            
+            pantalla.blit(powerup_images[powerup["nombre"]], img_rect)
+            
+            # Nombre del power-up
+            nombre_surface, nombre_rect = fuente_subtitulo.render(powerup["nombre"], powerup["color"])
+            nombre_rect.topleft = (img_x + 80, y_pos)
+            pantalla.blit(nombre_surface, nombre_rect)
+            
+            # Descripción principal
+            desc_surface, desc_rect = fuente_descripcion.render(powerup["descripcion"], BLANCO)
+            desc_rect.topleft = (img_x + 80, y_pos + 40)
+            pantalla.blit(desc_surface, desc_rect)
+            
+            # Detalles adicionales
+            detalles_surface, detalles_rect = fuente_pequena.render(powerup["detalles"], GRIS_CLARO)
+            detalles_rect.topleft = (img_x + 80, y_pos + 70)
+            pantalla.blit(detalles_surface, detalles_rect)
+        
+        # Instrucciones adicionales
+        instrucciones_extra = [
+            "• Los power-ups aparecen aleatoriamente durante el juego",
+            "• Simplemente toca la letra correcta para recoger el power-up",
+            "• Algunos efectos duran un tiempo limitado",
+            "• ¡Úsalos estratégicamente para obtener mejores puntuaciones!"
+        ]
+        
+        extra_start_y = start_y + len(powerups_info) * spacing_y + 50
+        for j, instruccion in enumerate(instrucciones_extra):
+            instr_surface, instr_rect = fuente_pequena.render(instruccion, AMARILLO)
+            instr_rect.topleft = (ANCHO//2 - 250, extra_start_y + j * 30)
+            pantalla.blit(instr_surface, instr_rect)
+        
+        # Botón volver
+        btn_volver.draw(pantalla)
+        
+        pygame.display.flip()
+        clock.tick(60)
+
 def pantalla_seleccionar_partida(saved_games):
     fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
     fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
@@ -560,7 +735,10 @@ if __name__ == '__main__':
             elif modo_seleccionado == "versus":
                 time_limit_minutes = pantalla_configuracion_versus()
                 if time_limit_minutes != "volver_seleccion_modo": game_options = {"num_jugadores": 2, "initial_speed": 2.0, "count_wrong_key_faults": True, "time_limit_seconds": time_limit_minutes * 60, "fallos_limit": 999}
+            elif modo_seleccionado == "infinito":
+                game_options = {"num_jugadores": 1, "initial_speed": 1.0, "count_wrong_key_faults": False, "time_limit_seconds": 0, "fallos_limit": 999999}
         elif accion == "highscores": pantalla_highscores(); continue
+        elif accion == "instrucciones": pantalla_instrucciones(); continue
         elif accion == "configuracion":
             nombre_fuente, tam, color = pantalla_configuracion(config)
             config = {"fuente": nombre_fuente, "tam": tam, "color": color}
