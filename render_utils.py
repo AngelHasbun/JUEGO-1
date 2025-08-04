@@ -3,16 +3,7 @@ import pygame.freetype
 import math
 
 def render_text_gradient(font, text, rect, surface, gradient_colors, border_color, border_thickness):
-    """
-    Renders text with a gradient fill and an optional border.
-    font: pygame.freetype.SysFont object
-    text: string to render
-    rect: pygame.Rect for positioning the text
-    surface: pygame surface to draw on
-    gradient_colors: list or tuple of two (R, G, B) colors for the gradient
-    border_color: (R, G, B) color for the border
-    border_thickness: integer for the border width
-    """
+  
     # Draw border first
     offsets = []
     for i in range(-border_thickness, border_thickness + 1):

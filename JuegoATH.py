@@ -14,6 +14,9 @@ from score_manager import ScoreManager
 from keyboard_layout_manager import KeyboardLayoutManager
 from render_utils import render_text_gradient
 from game_session import GameSession
+from statistics_manager import StatisticsManager
+from achievements_manager import AchievementsManager
+from enhanced_powerups import EnhancedPowerUpManager, create_enhanced_powerup_icons
 
 # ========================
 # CONFIGURACIÓN INICIAL OPTIMIZADA
@@ -319,15 +322,17 @@ def pantalla_menu_principal():
         pygame.mixer.music.play(-1)
     # ---------------------
 
-    btn_y_start, btn_spacing = ALTO // 2 - 80, 70
-    fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 28)
-    btn_modos_juego = Button(ANCHO//2-140, btn_y_start, 280, 60, "JUGAR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_puntuaciones = Button(ANCHO//2-140, btn_y_start + btn_spacing, 280, 60, "PUNTUACIONES", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_instrucciones = Button(ANCHO//2-140, btn_y_start + 2 * btn_spacing, 280, 60, "INSTRUCCIONES", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_cargar = Button(ANCHO//2-140, btn_y_start + 3 * btn_spacing, 280, 60, "CARGAR PARTIDA", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_config = Button(ANCHO//2-140, btn_y_start + 4 * btn_spacing, 280, 60, "CONFIGURACIÓN", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    btn_salir = Button(ANCHO//2-140, btn_y_start + 5 * btn_spacing, 280, 60, "SALIR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
-    botones = [btn_modos_juego, btn_puntuaciones, btn_instrucciones, btn_cargar, btn_config, btn_salir]
+    btn_y_start, btn_spacing = ALTO // 2 - 120, 65
+    fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 26)
+    btn_modos_juego = Button(ANCHO//2-140, btn_y_start, 280, 55, "JUGAR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_puntuaciones = Button(ANCHO//2-140, btn_y_start + btn_spacing, 280, 55, "PUNTUACIONES", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_estadisticas = Button(ANCHO//2-140, btn_y_start + 2 * btn_spacing, 280, 55, "ESTADÍSTICAS", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_logros = Button(ANCHO//2-140, btn_y_start + 3 * btn_spacing, 280, 55, "LOGROS", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_instrucciones = Button(ANCHO//2-140, btn_y_start + 4 * btn_spacing, 280, 55, "INSTRUCCIONES", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_cargar = Button(ANCHO//2-140, btn_y_start + 5 * btn_spacing, 280, 55, "CARGAR PARTIDA", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_config = Button(ANCHO//2-140, btn_y_start + 6 * btn_spacing, 280, 55, "CONFIGURACIÓN", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    btn_salir = Button(ANCHO//2-140, btn_y_start + 7 * btn_spacing, 280, 55, "SALIR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
+    botones = [btn_modos_juego, btn_puntuaciones, btn_estadisticas, btn_logros, btn_instrucciones, btn_cargar, btn_config, btn_salir]
     for btn in botones: btn.set_logo_style(True)
     logo_img = None
     try: logo_img = pygame.image.load(os.path.join(os.path.dirname(__file__), "remove.png")).convert_alpha()
@@ -337,6 +342,8 @@ def pantalla_menu_principal():
             if evento.type == pygame.QUIT: pygame.quit(); sys.exit()
             if btn_modos_juego.handle_event(evento): return "seleccion_modo"
             if btn_puntuaciones.handle_event(evento): return "highscores"
+            if btn_estadisticas.handle_event(evento): return "estadisticas"
+            if btn_logros.handle_event(evento): return "logros"
             if btn_instrucciones.handle_event(evento): return "instrucciones"
             if btn_cargar.handle_event(evento): return "cargar_partida"
             if btn_config.handle_event(evento): return "configuracion"
@@ -568,8 +575,9 @@ def pantalla_instrucciones():
                        pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 24), GRIS_OSCURO, GRIS_CLARO)
     btn_volver.set_logo_style(True, gradient_colors=[ROJO, (255,100,100)], border_color=NEGRO)
     
-    # Información de los power-ups
+    # Información de los power-ups (originales y nuevos)
     powerups_info = [
+        # Power-ups originales
         {
             "nombre": "RALENTIZAR",
             "imagen": "caracol.png",
@@ -590,6 +598,42 @@ def pantalla_instrucciones():
             "descripcion": "Duplica los puntos que obtienes temporalmente.",
             "detalles": "Durante un tiempo limitado, cada acierto vale el doble de puntos.",
             "color": (255, 255, 100)
+        },
+        # Nuevos power-ups avanzados
+        {
+            "nombre": "CONGELADOR",
+            "imagen": "hielo.png",
+            "descripcion": "Congela todas las letras por 8 segundos.",
+            "detalles": "Detiene completamente el movimiento de todas las letras en pantalla.",
+            "color": (150, 200, 255)
+        },
+        {
+            "nombre": "IMÁN",
+            "imagen": "iman.png",
+            "descripcion": "Atrae las letras hacia el centro por 6 segundos.",
+            "detalles": "Crea un campo magnético que atrae todas las letras hacia el centro.",
+            "color": (255, 100, 255)
+        },
+        {
+            "nombre": "MULTIPLICADOR x3",
+            "imagen": "x3.png",
+            "descripcion": "Triplica los puntos obtenidos por 10 segundos.",
+            "detalles": "Cada acierto vale triple puntos durante el efecto activo.",
+            "color": (255, 215, 0)
+        },
+        {
+            "nombre": "VIDA EXTRA",
+            "imagen": "vidaExtra.png",
+            "descripcion": "Otorga un fallo adicional permitido.",
+            "detalles": "Aumenta tu límite de errores en uno, dándote una oportunidad extra.",
+            "color": (255, 100, 100)
+        },
+        {
+            "nombre": "BOMBA DE TIEMPO",
+            "imagen": "bomba_tiempo.png",
+            "descripcion": "Elimina todas las letras tras 3 segundos.",
+            "detalles": "Cuenta regresiva de 3 segundos y luego elimina todas las letras.",
+            "color": (255, 50, 50)
         }
     ]
     
@@ -682,6 +726,255 @@ def pantalla_instrucciones():
         pygame.display.flip()
         clock.tick(60)
 
+def pantalla_estadisticas():
+    """Pantalla que muestra estadísticas detalladas del jugador."""
+    stats_manager = StatisticsManager()
+    historical_summary = stats_manager.get_historical_summary()
+    
+    fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
+    fuente_subtitulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 32)
+    fuente_texto = pygame.freetype.SysFont("arial", 24)
+    fuente_pequena = pygame.freetype.SysFont("arial", 20)
+    
+    btn_volver = Button(ANCHO-180, 30, 150, 50, "VOLVER", 
+                       pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 24), GRIS_OSCURO, GRIS_CLARO)
+    btn_volver.set_logo_style(True, gradient_colors=[AZUL, (100,150,255)], border_color=NEGRO)
+    
+    while True:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if btn_volver.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
+                return
+        
+        # Dibujar fondo
+        pantalla.blit(fondo_img, (0, 0))
+        dibujar_estrellas(0.3)
+        
+        # Título principal
+        rect_titulo = pygame.Rect(0, 40, ANCHO, 60)
+        render_text_gradient(fuente_titulo, "ESTADÍSTICAS DEL JUGADOR", rect_titulo, pantalla, 
+                           [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 3)
+        
+        # Estadísticas generales
+        y_pos = 120
+        
+        # Resumen general
+        texto_resumen = f"Total de Sesiones: {historical_summary['total_sessions']}"
+        texto_surface, _ = fuente_subtitulo.render(texto_resumen, AMARILLO)
+        pantalla.blit(texto_surface, (50, y_pos))
+        y_pos += 50
+        
+        if historical_summary['total_sessions'] > 0:
+            # WPM Promedio
+            wpm_text = f"WPM Promedio: {historical_summary['average_wpm']}"
+            wpm_surface, _ = fuente_texto.render(wpm_text, BLANCO)
+            pantalla.blit(wpm_surface, (70, y_pos))
+            y_pos += 35
+            
+            # Precisión Promedio
+            acc_text = f"Precisión Promedio: {historical_summary['average_accuracy']}%"
+            acc_surface, _ = fuente_texto.render(acc_text, BLANCO)
+            pantalla.blit(acc_surface, (70, y_pos))
+            y_pos += 35
+            
+            # Tiempo total jugado
+            total_hours = historical_summary['total_playtime'] / 3600
+            time_text = f"Tiempo Total Jugado: {total_hours:.1f} horas"
+            time_surface, _ = fuente_texto.render(time_text, BLANCO)
+            pantalla.blit(time_surface, (70, y_pos))
+            y_pos += 60
+            
+            # Récords personales
+            records = historical_summary.get('records', {})
+            if records:
+                records_title, _ = fuente_subtitulo.render("RÉCORDS PERSONALES", VERDE)
+                pantalla.blit(records_title, (50, y_pos))
+                y_pos += 45
+                
+                if 'best_wpm' in records:
+                    best_wpm_text = f"Mejor WPM: {records['best_wpm']}"
+                    best_wpm_surface, _ = fuente_texto.render(best_wpm_text, VERDE)
+                    pantalla.blit(best_wpm_surface, (70, y_pos))
+                    y_pos += 30
+                
+                if 'best_accuracy' in records:
+                    best_acc_text = f"Mejor Precisión: {records['best_accuracy']}%"
+                    best_acc_surface, _ = fuente_texto.render(best_acc_text, VERDE)
+                    pantalla.blit(best_acc_surface, (70, y_pos))
+                    y_pos += 30
+                
+                if 'best_streak' in records:
+                    best_streak_text = f"Mejor Racha: {records['best_streak']} aciertos"
+                    best_streak_surface, _ = fuente_texto.render(best_streak_text, VERDE)
+                    pantalla.blit(best_streak_surface, (70, y_pos))
+                    y_pos += 30
+                
+                if 'longest_session' in records:
+                    longest_minutes = records['longest_session'] / 60
+                    longest_text = f"Sesión Más Larga: {longest_minutes:.1f} minutos"
+                    longest_surface, _ = fuente_texto.render(longest_text, VERDE)
+                    pantalla.blit(longest_surface, (70, y_pos))
+                    y_pos += 50
+            
+            # Sesiones recientes
+            recent_sessions = historical_summary.get('recent_sessions', [])
+            if recent_sessions:
+                recent_title, _ = fuente_subtitulo.render("SESIONES RECIENTES", NARANJA)
+                pantalla.blit(recent_title, (50, y_pos))
+                y_pos += 40
+                
+                for i, session in enumerate(recent_sessions[-5:]):  # Últimas 5
+                    session_text = f"{i+1}. WPM: {session['wpm']:.1f} | Precisión: {session['accuracy']:.1f}% | Modo: {session.get('game_mode', 'N/A')}"
+                    session_surface, _ = fuente_pequena.render(session_text, GRIS_CLARO)
+                    pantalla.blit(session_surface, (70, y_pos))
+                    y_pos += 25
+        else:
+            # No hay estadísticas
+            no_stats_text = "¡Juega algunas partidas para ver tus estadísticas!"
+            no_stats_surface, _ = fuente_texto.render(no_stats_text, GRIS_CLARO)
+            text_rect = no_stats_surface.get_rect(center=(ANCHO//2, ALTO//2))
+            pantalla.blit(no_stats_surface, text_rect)
+        
+        # Botón volver
+        btn_volver.draw(pantalla)
+        
+        pygame.display.flip()
+        clock.tick(60)
+
+def pantalla_logros():
+    """Pantalla que muestra los logros del jugador."""
+    achievements_manager = AchievementsManager()
+    summary = achievements_manager.get_achievement_summary()
+    unlocked_achievements = achievements_manager.get_unlocked_achievements()
+    locked_achievements = achievements_manager.get_locked_achievements()
+    
+    fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
+    fuente_subtitulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 32)
+    fuente_texto = pygame.freetype.SysFont("arial", 22)
+    fuente_pequena = pygame.freetype.SysFont("arial", 18)
+    
+    btn_volver = Button(ANCHO-180, 30, 150, 50, "VOLVER", 
+                       pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 24), GRIS_OSCURO, GRIS_CLARO)
+    btn_volver.set_logo_style(True, gradient_colors=[PURPURA, (200,100,200)], border_color=NEGRO)
+    
+    scroll_offset = 0
+    max_scroll = max(0, len(achievements_manager.achievements) * 80 - (ALTO - 200))
+    
+    while True:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if btn_volver.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
+                return
+            
+            # Scroll con rueda del ratón
+            if evento.type == pygame.MOUSEWHEEL:
+                scroll_offset -= evento.y * 30
+                scroll_offset = max(0, min(scroll_offset, max_scroll))
+        
+        # Dibujar fondo
+        pantalla.blit(fondo_img, (0, 0))
+        dibujar_estrellas(0.3)
+        
+        # Título principal
+        rect_titulo = pygame.Rect(0, 40, ANCHO, 60)
+        render_text_gradient(fuente_titulo, "LOGROS Y ACHIEVEMENTS", rect_titulo, pantalla, 
+                           [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 3)
+        
+        # Resumen de progreso
+        progreso_text = f"Progreso: {summary['unlocked_count']}/{summary['total_achievements']} ({summary['completion_percentage']}%)"
+        progreso_surface, _ = fuente_subtitulo.render(progreso_text, AMARILLO)
+        pantalla.blit(progreso_surface, (50, 110))
+        
+        puntos_text = f"Puntos Totales: {summary['total_points']}"
+        puntos_surface, _ = fuente_texto.render(puntos_text, BLANCO)
+        pantalla.blit(puntos_surface, (50, 140))
+        
+        # Lista de logros
+        y_start = 180 - scroll_offset
+        
+        # Primero mostrar logros desbloqueados
+        if unlocked_achievements:
+            unlocked_title, _ = fuente_subtitulo.render("✓ LOGROS DESBLOQUEADOS", VERDE)
+            if y_start > 0 and y_start < ALTO:
+                pantalla.blit(unlocked_title, (50, y_start))
+            y_start += 40
+            
+            for achievement in unlocked_achievements:
+                if y_start > -80 and y_start < ALTO + 80:  # Solo dibujar si está visible
+                    # Fondo del logro
+                    logro_rect = pygame.Rect(50, y_start, ANCHO-280, 70)
+                    pygame.draw.rect(pantalla, (0, 50, 0), logro_rect, border_radius=10)
+                    pygame.draw.rect(pantalla, achievement.icon_color, logro_rect, 3, border_radius=10)
+                    
+                    # Icono del logro
+                    icon_rect = pygame.Rect(60, y_start + 10, 50, 50)
+                    pygame.draw.circle(pantalla, achievement.icon_color, icon_rect.center, 25)
+                    pygame.draw.circle(pantalla, BLANCO, icon_rect.center, 25, 2)
+                    
+                    # Texto del logro
+                    nombre_surface, _ = fuente_texto.render(achievement.name, BLANCO)
+                    pantalla.blit(nombre_surface, (120, y_start + 10))
+                    
+                    desc_surface, _ = fuente_pequena.render(achievement.description, GRIS_CLARO)
+                    pantalla.blit(desc_surface, (120, y_start + 35))
+                    
+                    # Puntos
+                    puntos_logro = f"+{achievement.reward_points} pts"
+                    puntos_logro_surface, _ = fuente_pequena.render(puntos_logro, AMARILLO)
+                    pantalla.blit(puntos_logro_surface, (ANCHO-250, y_start + 25))
+                
+                y_start += 80
+        
+        # Luego mostrar logros bloqueados
+        if locked_achievements:
+            if y_start > 0 and y_start < ALTO:
+                locked_title, _ = fuente_subtitulo.render("🔒 LOGROS BLOQUEADOS", GRIS_CLARO)
+                pantalla.blit(locked_title, (50, y_start))
+            y_start += 40
+            
+            for achievement in locked_achievements:
+                if y_start > -80 and y_start < ALTO + 80:  # Solo dibujar si está visible
+                    # Fondo del logro (más oscuro)
+                    logro_rect = pygame.Rect(50, y_start, ANCHO-280, 70)
+                    pygame.draw.rect(pantalla, (30, 30, 30), logro_rect, border_radius=10)
+                    pygame.draw.rect(pantalla, GRIS_OSCURO, logro_rect, 2, border_radius=10)
+                    
+                    # Icono del logro (desaturado)
+                    icon_rect = pygame.Rect(60, y_start + 10, 50, 50)
+                    dark_color = tuple(c//3 for c in achievement.icon_color)
+                    pygame.draw.circle(pantalla, dark_color, icon_rect.center, 25)
+                    pygame.draw.circle(pantalla, GRIS_OSCURO, icon_rect.center, 25, 2)
+                    
+                    # Texto del logro
+                    nombre_surface, _ = fuente_texto.render(achievement.name, GRIS_CLARO)
+                    pantalla.blit(nombre_surface, (120, y_start + 10))
+                    
+                    desc_surface, _ = fuente_pequena.render(achievement.description, GRIS_OSCURO)
+                    pantalla.blit(desc_surface, (120, y_start + 35))
+                    
+                    # Puntos potenciales
+                    puntos_logro = f"{achievement.reward_points} pts"
+                    puntos_logro_surface, _ = fuente_pequena.render(puntos_logro, GRIS_OSCURO)
+                    pantalla.blit(puntos_logro_surface, (ANCHO-250, y_start + 25))
+                
+                y_start += 80
+        
+        # Indicador de scroll si es necesario
+        if max_scroll > 0:
+            scroll_bar_height = max(20, (ALTO - 200) * (ALTO - 200) // (len(achievements_manager.achievements) * 80))
+            scroll_bar_y = 180 + (scroll_offset / max_scroll) * (ALTO - 200 - scroll_bar_height)
+            pygame.draw.rect(pantalla, GRIS_CLARO, (ANCHO-30, scroll_bar_y, 10, scroll_bar_height), border_radius=5)
+        
+        # Botón volver
+        btn_volver.draw(pantalla)
+        
+        pygame.display.flip()
+        clock.tick(60)
+
 def pantalla_seleccionar_partida(saved_games):
     fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
     fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
@@ -737,8 +1030,18 @@ if __name__ == '__main__':
                 if time_limit_minutes != "volver_seleccion_modo": game_options = {"num_jugadores": 2, "initial_speed": 2.0, "count_wrong_key_faults": True, "time_limit_seconds": time_limit_minutes * 60, "fallos_limit": 999}
             elif modo_seleccionado == "infinito":
                 game_options = {"num_jugadores": 1, "initial_speed": 1.0, "count_wrong_key_faults": False, "time_limit_seconds": 0, "fallos_limit": 999999}
-        elif accion == "highscores": pantalla_highscores(); continue
-        elif accion == "instrucciones": pantalla_instrucciones(); continue
+        elif accion == "highscores":
+            pantalla_highscores()
+            accion = "menu_principal"
+        elif accion == "estadisticas":
+            pantalla_estadisticas()
+            accion = "menu_principal"
+        elif accion == "logros":
+            pantalla_logros()
+            accion = "menu_principal"
+        elif accion == "instrucciones":
+            pantalla_instrucciones()
+            accion = "menu_principal"
         elif accion == "configuracion":
             nombre_fuente, tam, color = pantalla_configuracion(config)
             config = {"fuente": nombre_fuente, "tam": tam, "color": color}
