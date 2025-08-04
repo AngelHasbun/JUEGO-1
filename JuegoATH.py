@@ -303,18 +303,21 @@ def pantalla_menu_principal():
 
 def pantalla_seleccion_modo_juego():
     fuente_opciones = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 30)
-    btn_arcane = Button(ANCHO//2-150, ALTO//2-100, 300, 70, "MODO ARCANE (1P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_arcane.set_logo_style(True)
-    btn_versus = Button(ANCHO//2-150, ALTO//2-10, 300, 70, "MODO VERSUS (2P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_versus.set_logo_style(True)
+    btn_arcane = Button(ANCHO//2-150, ALTO//2-150, 300, 70, "MODO ARCANE (1P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_arcane.set_logo_style(True)
+    btn_versus = Button(ANCHO//2-150, ALTO//2-50, 300, 70, "MODO VERSUS (2P)", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_versus.set_logo_style(True)
+    # Nuevo botón para el modo infinito
+    btn_infinito = Button(ANCHO//2-150, ALTO//2+50, 300, 70, "MODO INFINITO", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_infinito.set_logo_style(True) # [cite: 1]
     btn_volver = Button(ANCHO//2-150, ALTO//2+150, 300, 70, "VOLVER", fuente_opciones, GRIS_OSCURO, GRIS_CLARO); btn_volver.set_logo_style(True)
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT: pygame.quit(); sys.exit()
             if btn_arcane.handle_event(evento): return "arcane"
             if btn_versus.handle_event(evento): return "versus"
+            if btn_infinito.handle_event(evento): return "infinito" # [cite: 1]
             if btn_volver.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE): return "volver_menu"
         pantalla.blit(fondo_img, (0, 0)); dibujar_estrellas(0.5)
         render_text_gradient(pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 60), "SELECCIONAR MODO", pygame.Rect(0, ALTO//4-50, ANCHO, 100), pantalla, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 4)
-        btn_arcane.draw(pantalla); btn_versus.draw(pantalla); btn_volver.draw(pantalla)
+        btn_arcane.draw(pantalla); btn_versus.draw(pantalla); btn_infinito.draw(pantalla); btn_volver.draw(pantalla) # [cite: 1]
         pygame.display.flip(); clock.tick(60)
 
 def pantalla_configuracion_arcane():
