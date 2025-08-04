@@ -334,9 +334,7 @@ def pantalla_menu_principal():
     btn_salir = Button(ANCHO//2-140, btn_y_start + 7 * btn_spacing, 280, 55, "SALIR", fuente_opciones, GRIS_OSCURO, GRIS_CLARO)
     botones = [btn_modos_juego, btn_puntuaciones, btn_estadisticas, btn_logros, btn_instrucciones, btn_cargar, btn_config, btn_salir]
     for btn in botones: btn.set_logo_style(True)
-    logo_img = None
-    try: logo_img = pygame.image.load(os.path.join(os.path.dirname(__file__), "remove.png")).convert_alpha()
-    except Exception: pass
+    # Usar solo el logo de texto renderizado, no cargar imagen
     while True:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT: pygame.quit(); sys.exit()
@@ -350,12 +348,10 @@ def pantalla_menu_principal():
             if btn_salir.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
                 if confirmar_salida(): pygame.quit(); sys.exit()
         pantalla.blit(fondo_img, (0, 0)); dibujar_estrellas(0.5)
-        if logo_img:
-            logo_rect = logo_img.get_rect(center=(ANCHO // 2, ALTO // 4)); pantalla.blit(logo_img, logo_rect)
-        else:
-            fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 80)
-            rect_titulo = pygame.Rect(0, ALTO // 4 - 50, ANCHO, 100)
-            render_text_gradient(fuente_titulo, "SPEEDTYPE", rect_titulo, pantalla, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 4)
+        # Renderizar logo de texto con gradiente
+        fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 80)
+        rect_titulo = pygame.Rect(0, ALTO // 4 - 50, ANCHO, 100)
+        render_text_gradient(fuente_titulo, "SPEEDTYPE", rect_titulo, pantalla, [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 4)
         for btn in botones: btn.draw(pantalla)
         pygame.display.flip(); clock.tick(60)
 
