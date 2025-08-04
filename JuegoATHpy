@@ -96,14 +96,16 @@ except Exception as e:
 spawner_icons = {}
 spawner_icon_size = (80, 80) # Tamaño para el avión y el icono lateral
 try:
-    spawner_icons["avion"] = pygame.image.load(os.path.join(os.path.dirname(__file__), "helicoptero.png")).convert_alpha()
-    spawner_icons["avion"] = pygame.transform.scale(spawner_icons["avion"], spawner_icon_size)
-    spawner_icons["icono_lateral"] = pygame.image.load(os.path.join(os.path.dirname(__file__), "vehiculo.png")).convert_alpha()
-    spawner_icons["icono_lateral"] = pygame.transform.scale(spawner_icons["icono_lateral"], spawner_icon_size)
+    # spawner_icons["avion"] = pygame.image.load(os.path.join(os.path.dirname(__file__), "helicoptero.png")).convert_alpha() # Comentado para remover
+    # spawner_icons["avion"] = pygame.transform.scale(spawner_icons["avion"], spawner_icon_size) # Comentado para remover
+    # spawner_icons["icono_lateral"] = pygame.image.load(os.path.join(os.path.dirname(__file__), "vehiculo.png")).convert_alpha() # Comentado para remover
+    # spawner_icons["icono_lateral"] = pygame.transform.scale(spawner_icons["icono_lateral"], spawner_icon_size) # Comentado para remover
+    pass # Se agrega un 'pass' para evitar un error si todas las líneas dentro del try están comentadas
 except Exception as e:
     print(f"Error cargando iconos de generadores: {e}")
     spawner_icons["avion"] = pygame.Surface(spawner_icon_size, pygame.SRCALPHA)
     spawner_icons["icono_lateral"] = pygame.Surface(spawner_icon_size, pygame.SRCALPHA)
+
 
 # ========================
 # FUNCIONES DE UI Y UTILIDADES
