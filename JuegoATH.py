@@ -137,10 +137,10 @@ try:
     
     # Usar la nave para todos los tipos de spawner
     spawner_icons["nave"] = nave_img
-    spawner_icons["avion"] = nave_img  # Para compatibilidad con código existente
+    #spawner_icons["avion"] = nave_img  # Para compatibilidad con código existente
     spawner_icons["icono_lateral"] = nave_img  # Para compatibilidad con código existente
     spawner_icons["nave_espacial"] = nave_img  # Para compatibilidad con código existente
-    spawner_icons["barco"] = nave_img  # Para compatibilidad con código existente
+    #spawner_icons["barco"] = nave_img  # Para compatibilidad con código existente
     
     print("Imagen de nave.png cargada exitosamente")
 except Exception as e:
@@ -152,10 +152,10 @@ except Exception as e:
     
     # Usar la superficie de respaldo para todos los tipos
     spawner_icons["nave"] = fallback_surface
-    spawner_icons["avion"] = fallback_surface
+    #spawner_icons["avion"] = fallback_surface
     spawner_icons["icono_lateral"] = fallback_surface
     spawner_icons["nave_espacial"] = fallback_surface
-    spawner_icons["barco"] = fallback_surface 
+    #spawner_icons["barco"] = fallback_surface 
 
 # ========================
 # FUNCIONES DE UI Y UTILIDADES
@@ -595,42 +595,7 @@ def pantalla_instrucciones():
             "detalles": "Durante un tiempo limitado, cada acierto vale el doble de puntos.",
             "color": (255, 255, 100)
         },
-        # Nuevos power-ups avanzados
-        {
-            "nombre": "CONGELADOR",
-            "imagen": "hielo.png",
-            "descripcion": "Congela todas las letras por 8 segundos.",
-            "detalles": "Detiene completamente el movimiento de todas las letras en pantalla.",
-            "color": (150, 200, 255)
-        },
-        {
-            "nombre": "IMÁN",
-            "imagen": "iman.png",
-            "descripcion": "Atrae las letras hacia el centro por 6 segundos.",
-            "detalles": "Crea un campo magnético que atrae todas las letras hacia el centro.",
-            "color": (255, 100, 255)
-        },
-        {
-            "nombre": "MULTIPLICADOR x3",
-            "imagen": "x3.png",
-            "descripcion": "Triplica los puntos obtenidos por 10 segundos.",
-            "detalles": "Cada acierto vale triple puntos durante el efecto activo.",
-            "color": (255, 215, 0)
-        },
-        {
-            "nombre": "VIDA EXTRA",
-            "imagen": "vidaExtra.png",
-            "descripcion": "Otorga un fallo adicional permitido.",
-            "detalles": "Aumenta tu límite de errores en uno, dándote una oportunidad extra.",
-            "color": (255, 100, 100)
-        },
-        {
-            "nombre": "BOMBA DE TIEMPO",
-            "imagen": "bomba_tiempo.png",
-            "descripcion": "Elimina todas las letras tras 3 segundos.",
-            "detalles": "Cuenta regresiva de 3 segundos y luego elimina todas las letras.",
-            "color": (255, 50, 50)
-        }
+        
     ]
     
     # Cargar imágenes de power-ups con fallbacks

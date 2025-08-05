@@ -60,6 +60,7 @@ class PowerUp:
         return 0
 
     def get_remaining_hits(self):
+
         """
         Adaptación para la UI del escudo: Retorna 1 si el escudo está activo, o 0 si no.
         (Ya que el escudo ya no tiene un conteo de golpes específico en esta versión).
@@ -67,7 +68,7 @@ class PowerUp:
         return 1 if self.esta_activo("escudo") else 0
 
 
-# --- CLASE POWER-UP DE ESCUDO (Simplificada) ---
+# --- CLASE POWER-UP DE ESCUDO ---
 class ShieldPowerUp:
     def __init__(self, duration=10): 
         self.duracion_escudo_por_defecto = duration

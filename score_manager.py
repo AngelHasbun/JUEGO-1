@@ -19,9 +19,7 @@ class ScoreManager:
         self.score += points_to_add
         self.aciertos += 1
         self.racha_actual += 1
-        # Aquí podrías añadir lógica para bonos por racha si decides tenerlos en el futuro
-        # Por ejemplo: if self.racha_actual > 0 and self.racha_actual % 10 == 0: self.score += 50
-
+        #Por agregar bonos.
     def handle_miss(self, shielded=False):
         """Maneja un fallo. Reinicia la racha y cuenta el fallo si no está protegido
         por un escudo. No resta puntos del marcador."""
