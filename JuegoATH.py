@@ -257,6 +257,9 @@ class Button:
         if event.type == pygame.MOUSEMOTION: self.is_hovered = self.rect.collidepoint(event.pos)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and self.is_hovered: return True
         return False
+    #----------------------------
+    # PANTALLAS DE JUEGO
+    #----------------------------
 
 def pantalla_intro():
     start_time = time.time()
@@ -686,124 +689,7 @@ def pantalla_instrucciones():
         
         pygame.display.flip()
         clock.tick(60)
-
-def pantalla_estadisticas():
-    """Pantalla que muestra estadísticas detalladas del jugador."""
-    stats_manager = StatisticsManager()
-    historical_summary = stats_manager.get_historical_summary()
-    
-    fuente_titulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 50)
-    fuente_subtitulo = pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 32)
-    fuente_texto = pygame.freetype.SysFont("arial", 24)
-    fuente_pequena = pygame.freetype.SysFont("arial", 20)
-    
-    btn_volver = Button(ANCHO-180, 30, 150, 50, "VOLVER", 
-                       pygame.freetype.SysFont(FUENTE_LOGO_STYLE, 24), GRIS_OSCURO, GRIS_CLARO)
-    btn_volver.set_logo_style(True, gradient_colors=[AZUL, (100,150,255)], border_color=NEGRO)
-    
-    while True:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if btn_volver.handle_event(evento) or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
-                return
         
-        # Dibujar fondo
-        pantalla.blit(fondo_img, (0, 0))
-        dibujar_estrellas(0.3)
-        
-        # Título principal
-        rect_titulo = pygame.Rect(0, 40, ANCHO, 60)
-        render_text_gradient(fuente_titulo, "ESTADÍSTICAS DEL JUGADOR", rect_titulo, pantalla, 
-                           [COLOR_GRADIENTE_TOP, COLOR_GRADIENTE_BOTTOM], COLOR_CONTORNO, 3)
-        
-        # Estadísticas generales
-        y_pos = 120
-        
-        # Resumen general
-        texto_resumen = f"Total de Sesiones: {historical_summary['total_sessions']}"
-        texto_surface, _ = fuente_subtitulo.render(texto_resumen, AMARILLO)
-        pantalla.blit(texto_surface, (50, y_pos))
-        y_pos += 50
-        
-        if historical_summary['total_sessions'] > 0:
-            # WPM Promedio
-            wpm_text = f"WPM Promedio: {historical_summary['average_wpm']}"
-            wpm_surface, _ = fuente_texto.render(wpm_text, BLANCO)
-            pantalla.blit(wpm_surface, (70, y_pos))
-            y_pos += 35
-            
-            # Precisión Promedio
-            acc_text = f"Precisión Promedio: {historical_summary['average_accuracy']}%"
-            acc_surface, _ = fuente_texto.render(acc_text, BLANCO)
-            pantalla.blit(acc_surface, (70, y_pos))
-            y_pos += 35
-            
-            # Tiempo total jugado
-            total_hours = historical_summary['total_playtime'] / 3600
-            time_text = f"Tiempo Total Jugado: {total_hours:.1f} horas"
-            time_surface, _ = fuente_texto.render(time_text, BLANCO)
-            pantalla.blit(time_surface, (70, y_pos))
-            y_pos += 60
-            
-            # Récords personales
-            records = historical_summary.get('records', {})
-            if records:
-                records_title, _ = fuente_subtitulo.render("RÉCORDS PERSONALES", VERDE)
-                pantalla.blit(records_title, (50, y_pos))
-                y_pos += 45
-                
-                if 'best_wpm' in records:
-                    best_wpm_text = f"Mejor WPM: {records['best_wpm']}"
-                    best_wpm_surface, _ = fuente_texto.render(best_wpm_text, VERDE)
-                    pantalla.blit(best_wpm_surface, (70, y_pos))
-                    y_pos += 30
-                
-                if 'best_accuracy' in records:
-                    best_acc_text = f"Mejor Precisión: {records['best_accuracy']}%"
-                    best_acc_surface, _ = fuente_texto.render(best_acc_text, VERDE)
-                    pantalla.blit(best_acc_surface, (70, y_pos))
-                    y_pos += 30
-                
-                if 'best_streak' in records:
-                    best_streak_text = f"Mejor Racha: {records['best_streak']} aciertos"
-                    best_streak_surface, _ = fuente_texto.render(best_streak_text, VERDE)
-                    pantalla.blit(best_streak_surface, (70, y_pos))
-                    y_pos += 30
-                
-                if 'longest_session' in records:
-                    longest_minutes = records['longest_session'] / 60
-                    longest_text = f"Sesión Más Larga: {longest_minutes:.1f} minutos"
-                    longest_surface, _ = fuente_texto.render(longest_text, VERDE)
-                    pantalla.blit(longest_surface, (70, y_pos))
-                    y_pos += 50
-            
-            # Sesiones recientes
-            recent_sessions = historical_summary.get('recent_sessions', [])
-            if recent_sessions:
-                recent_title, _ = fuente_subtitulo.render("SESIONES RECIENTES", NARANJA)
-                pantalla.blit(recent_title, (50, y_pos))
-                y_pos += 40
-                
-                for i, session in enumerate(recent_sessions[-5:]):  # Últimas 5
-                    session_text = f"{i+1}. WPM: {session['wpm']:.1f} | Precisión: {session['accuracy']:.1f}% | Modo: {session.get('game_mode', 'N/A')}"
-                    session_surface, _ = fuente_pequena.render(session_text, GRIS_CLARO)
-                    pantalla.blit(session_surface, (70, y_pos))
-                    y_pos += 25
-        else:
-            # No hay estadísticas
-            no_stats_text = "¡Juega algunas partidas para ver tus estadísticas!"
-            no_stats_surface, _ = fuente_texto.render(no_stats_text, GRIS_CLARO)
-            text_rect = no_stats_surface.get_rect(center=(ANCHO//2, ALTO//2))
-            pantalla.blit(no_stats_surface, text_rect)
-        
-        # Botón volver
-        btn_volver.draw(pantalla)
-        
-        pygame.display.flip()
-        clock.tick(60)
-
 def pantalla_logros():
     """Pantalla que muestra los logros del jugador."""
     achievements_manager = AchievementsManager()
@@ -924,7 +810,7 @@ def pantalla_logros():
                 
                 y_start += 80
         
-        # Indicador de scroll si es necesario
+        # Indicador de scroll si es necesario, accion de desplazamiento
         if max_scroll > 0:
             scroll_bar_height = max(20, (ALTO - 200) * (ALTO - 200) // (len(achievements_manager.achievements) * 80))
             scroll_bar_y = 180 + (scroll_offset / max_scroll) * (ALTO - 200 - scroll_bar_height)
